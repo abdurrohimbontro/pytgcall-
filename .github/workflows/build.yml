@@ -5,39 +5,31 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        python-version: [3.12]
-        arch: [aarch64]
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout pytgcalls
-      uses: actions/checkout@v3
-      with:
-        repository: pytgcalls/pytgcalls
-        ref: v3.0.0
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3 python3-pip python3-dev \
+            libffi-dev libssl-dev \
+            ffmpeg cmake pkg-config \
+            build-essential
 
-    - name: Install deps
-      run: |
-        sudo apt update
-        sudo apt install -y build-essential cmake pkg-config \
-          libssl-dev libffi-dev libopus-dev libvpx-dev \
-          libavformat-dev libavcodec-dev libavutil-dev \
-          libswresample-dev git
+      - name: Upgrade pip & setuptools
+        run: |
+          python3 -m pip install --upgrade pip setuptools wheel
 
-    - name: Build wheel
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        python setup.py bdist_wheel
+      - name: Build wheel
+        run: |
+          python3 setup.py bdist_wheel
 
-    - name: Upload wheel
-      uses: actions/upload-artifact@v3
-      with:
-        name: pytgcalls-wheel
-        path: dist/*.whl
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pytgcalls-v3-wheel
+          path: dist/*.whl
